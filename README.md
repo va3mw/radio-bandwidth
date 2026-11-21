@@ -33,6 +33,7 @@ current, inherited behaviour and will change as the milestones land.
 Radio Bandwidth uses its own ports, protocol markers and release signing key, so it runs next to
 NetProof without either one confusing or updating the other.
 
+- [Download](#download)
 - [Quick start](#quick-start)
 - [What it measures](#what-it-measures)
 - [How results are judged](#how-results-are-judged)
@@ -44,6 +45,29 @@ NetProof without either one confusing or updating the other.
 - [Known issues](#known-issues)
 - [Building](#building)
 - [Project layout](#project-layout)
+
+## Download
+
+Get the file for each computer from
+**[Releases](https://github.com/va3mw/radio-bandwidth/releases/latest)**:
+
+| Computer | File |
+|---|---|
+| Windows (most PCs) | `radio-bandwidth.exe` |
+| Windows on ARM | `radio-bandwidth-windows-arm64.exe` |
+| Mac (Apple Silicon or Intel) | `RadioBandwidth-mac.zip` |
+| Debian, Ubuntu or other Linux PC | `radio-bandwidth-linux-amd64` |
+| Raspberry Pi (64-bit OS) or other ARM Linux | `radio-bandwidth-linux-arm64` |
+
+On Linux you can download it straight from the terminal:
+
+```bash
+wget https://github.com/va3mw/radio-bandwidth/releases/latest/download/radio-bandwidth-linux-amd64
+```
+
+Use `radio-bandwidth-linux-arm64` in that link on a Raspberry Pi. The Linux files are static programs
+and run on any Debian release with nothing else installed. Once a copy is running, it keeps
+itself up to date (see [Versions and updates](#versions-and-updates)).
 
 ## Quick start
 
@@ -72,8 +96,18 @@ page. The first time, macOS refuses to open it because it is not signed by Apple
 confirm. Then allow Radio Bandwidth to **find devices on local networks** and to **accept incoming
 connections** when asked. The zip includes these steps as a text file.
 
-**Debian:** `chmod +x radio-bandwidth-linux-amd64` once. Without a desktop it just prints its addresses
-and answers tests. If `ufw` is on:
+**Debian:** make it runnable once, then start it:
+
+```bash
+chmod +x radio-bandwidth-linux-amd64
+```
+
+```bash
+./radio-bandwidth-linux-amd64
+```
+
+Without a desktop it just prints its addresses and answers tests. To answer tests only, with no
+browser page (for example on a server), add `--responder`. If `ufw` is on:
 
 ```bash
 sudo ufw allow 47830:47831/tcp
@@ -141,7 +175,8 @@ also in the saved and copied text report.
   Radio Bandwidth waveform show up with a **Radio** tag.
 - **Tested before**: the last 10 computers tested, or that tested this one, with their last
   result and a green dot when Radio Bandwidth is running there now. Saved in
-  `%AppData%\Radio Bandwidth\recent.json` (Windows) or `~/.config/Radio Bandwidth/recent.json` (Linux).
+  `%AppData%\Radio Bandwidth\recent.json` (Windows), `~/.config/Radio Bandwidth/recent.json` (Linux) or
+  `~/Library/Application Support/Radio Bandwidth/recent.json` (Mac).
 - **Pick the network connection** when a computer has several (Ethernet, Wi-Fi, Tailscale,
   other VPNs).
 - **Names and Tailscale MagicDNS**: type `boathouse2` or `boathouse2.tail1234.ts.net`. The name is
@@ -167,6 +202,9 @@ test runs with the version it has, and the report says why the update did not ha
 - A FlexRadio waveform is never updated this way; the report says when a newer one is available
   for SmartSDR's Waveform Manager.
 - This computer shows a banner with **Update now** when a newer release is out.
+- The computer list shows each other computer's Radio Bandwidth version. When one runs an older version
+  that can update itself, an **Update to x.y.z** button next to it updates it right away,
+  without running a test.
 
 **Why this is safe:** a tester cannot send code, only say "update". The other computer installs
 nothing unless the release manifest is signed with the Radio Bandwidth release key (the public half is

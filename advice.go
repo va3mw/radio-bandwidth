@@ -78,11 +78,16 @@ func buildFixes(r *Result, p Profile) []Fix {
 
 	// --- Wi-Fi
 	if p.Key == "wifi" && (bad("down") || bad("up") || bad("loss") || bad("udploss") || bad("jitter") || bad("udpjitter")) {
-		add(Fix{"Improve the Wi-Fi, or use a cable", []string{
-			"For a radio or any real-time stream, use a network cable. Wi-Fi delay and loss vary by nature and cannot match a wire.",
-			"Move closer to the access point, or move the access point higher and into the open (not inside a cabinet or behind the TV).",
-			"Use the 5 GHz or 6 GHz band rather than 2.4 GHz, and pick a channel your neighbours are not using.",
-			"Add a wired access point where you need it (mesh systems that relay over the air halve the speed at every hop).",
+		add(Fix{"Use a cable, or make the Wi-Fi steadier", []string{
+			"For the radio or SDR computer, use a network cable: it is the only fix that removes the problem. Wi-Fi takes turns on a shared channel, so delay and loss come and go however good the signal is. If you cannot run a cable, MoCA adapters over existing TV coax come close to a cable; powerline adapters are hit and miss.",
+			"Turn off Wi-Fi power saving on the computer, which makes the adapter doze between packets. On Windows: Control Panel > Power Options > Change plan settings > Change advanced power settings > Wireless Adapter Settings > Power Saving Mode > Maximum Performance, and keep a laptop plugged in. In the adapter's Advanced settings (Device Manager), set \"MIMO Power Save Mode\" to \"No SMPS\" if it is there. On Linux: sudo iw dev <wifi-name> set power_save off.",
+			"Stop the computer looking for other networks while you operate. Windows scans now and then, often about once a minute, and each scan pauses traffic: that shows as regular lag spikes and audio clicks. Close the Wi-Fi network list, and for a computer that stays put, set \"Roaming Aggressiveness\" to \"Lowest\" and, on Intel adapters, \"Global BG Scan Blocking\" to \"Always\" in the adapter's Advanced settings.",
+			"Update the Wi-Fi driver from the adapter maker (Intel, Realtek, MediaTek, Qualcomm), not only Windows Update. Many lag-spike problems are driver bugs.",
+			"Find out what else is on the Wi-Fi. Every device on the same channel takes turns with yours, so a TV streaming, a cloud backup, phones uploading photos or one old slow device makes everyone wait. Move busy devices to a cable or to the other band.",
+			"Give the 5 GHz (or 6 GHz) band its own network name and connect the radio computer only to that, so it cannot hop between bands or mesh units in the middle of a session.",
+			"In the router or access point: make sure WMM is on (Wi-Fi traffic priority needs it), choose a fixed channel instead of Auto, avoid DFS channels (52 to 144 on 5 GHz: when the router detects radar it must stop and move, which drops everyone for a minute or more), and use 80 MHz channel width rather than 160 MHz.",
+			"With a mesh system, connect the mesh units to each other with cables (wired backhaul). Every hop over the air adds delay and jitter and cuts the speed.",
+			"Moving closer to the access point only helps when the signal is weak (one or two bars, or worse than -67 dBm). With a good signal it changes nothing, and the steps above matter more.",
 		}})
 	}
 

@@ -42,6 +42,8 @@ button:disabled{opacity:.5;cursor:default}
 .dot.on{background:var(--good)}
 .vd{font-weight:600} .vd.good{color:var(--good)} .vd.fair{color:var(--fair)} .vd.poor{color:var(--poor)}
 button.x{background:transparent;color:var(--mute);border:1px solid var(--line);padding:10px 12px}
+.upd{font-size:13px;font-weight:600;color:var(--mute);white-space:nowrap}
+.upd.ok{color:var(--good)} .upd.bad{color:var(--poor);white-space:normal}
 .tag{font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--mute);margin-left:6px;vertical-align:1px}
 .hint{color:var(--mute);font-size:13px;margin:8px 0 0}
 .empty{color:var(--mute);padding:6px 0 14px}
@@ -225,9 +227,40 @@ function renderIfaces(){
   $("ifaceHint").textContent = "This computer has more than one connection. To test over Tailscale or a VPN, pick it here and use the other computer's VPN address.";
 }
 
+// The other computer's version, for the line under its name.
+function verText(p){
+  if (!p.version) return "";
+  if (p.update === "manual") return ` &middot; Radio Bandwidth ${esc(p.version)}: install ${esc(S.version)} there once, then it updates itself`;
+  if ((p.update || "").startsWith("failed: ")) return ` &middot; Radio Bandwidth ${esc(p.version)}: the update did not work (${esc(p.update.slice(8))})`;
+  return ` &middot; Radio Bandwidth ${esc(p.version)}`;
+}
+
+// The Update button, or how updating the other computer is going.
+function updCtl(target, p){
+  const dis = S.test.running ? "disabled" : "";
+  switch (true){
+    case p.update === "available":
+      return `<button class="ghost upd-go" data-t="${esc(target)}" ${dis} title="Update Radio Bandwidth on ${esc(p.host || target)} from ${esc(p.version)} to ${esc(S.version)}">Update to ${esc(S.version)}</button>`;
+    case p.update === "updating":
+      return `<span class="upd">Updating&hellip;</span>`;
+    case p.update === "updated":
+      return `<span class="upd ok">Updated to ${esc(p.version)}</span>`;
+    case (p.update || "").startsWith("failed: "):
+      return `<span class="upd bad" title="${esc(p.update.slice(8))}">Update failed</span><button class="ghost upd-go" data-t="${esc(target)}" ${dis}>Try again</button>`;
+  }
+  return "";
+}
+
+function wireUpd(box){
+  for (const b of box.querySelectorAll("button.upd-go")) b.onclick = () => {
+    b.disabled = true;
+    api("/api/update-peer", {target: b.dataset.t}).then(poll).catch(e => { alert(e.message); b.disabled = false; });
+  };
+}
+
 function renderPeers(){
   const ps = S.peers || [];
-  const fp = JSON.stringify(ps.map(p=>[p.addr,p.host,p.via,p.radio])) + S.test.running;
+  const fp = JSON.stringify(ps.map(p=>[p.addr,p.host,p.via,p.radio,p.version,p.update])) + S.test.running + S.version;
   if (fp === lastFp) return;
   lastFp = fp;
   if (!ps.length){
@@ -236,29 +269,33 @@ function renderPeers(){
   }
   $("peers").innerHTML = ps.map(p => `
     <div class="peer">
-      <div class="n"><b>${esc(p.host)}<span class="tag">${esc(p.via)}</span>${p.radio ? `<span class="tag">Radio</span>` : ""}</b><small>${p.dns ? esc(p.dns) + " &middot; " : ""}${esc(p.addr)} &middot; ${esc(p.os)}</small></div>
-      <button data-addr="${esc(p.addr)}" ${S.test.running ? "disabled" : ""}>Test</button>
+      <div class="n"><b>${esc(p.host)}<span class="tag">${esc(p.via)}</span>${p.radio ? `<span class="tag">Radio</span>` : ""}</b><small>${p.dns ? esc(p.dns) + " &middot; " : ""}${esc(p.addr)} &middot; ${esc(p.os)}${verText(p)}</small></div>
+      ${updCtl(p.addr, p)}
+      <button class="test" data-addr="${esc(p.addr)}" ${S.test.running ? "disabled" : ""}>Test</button>
     </div>`).join("");
-  for (const b of $("peers").querySelectorAll("button")) b.onclick = () => start(b.dataset.addr);
+  for (const b of $("peers").querySelectorAll("button.test")) b.onclick = () => start(b.dataset.addr);
+  wireUpd($("peers"));
 }
 
 let lastRecentFp = "";
 function renderRecent(){
   const rs = S.recent || [];
   $("recentBox").classList.toggle("hide", !rs.length);
-  const fp = JSON.stringify(rs) + S.test.running;
+  const fp = JSON.stringify(rs) + S.test.running + S.version;
   if (fp === lastRecentFp) return;
   lastRecentFp = fp;
   const vword = {good:"healthy", fair:"so-so", poor:"problems"};
   $("recent").innerHTML = rs.map(r => `
     <div class="peer">
       <div class="n"><b><span class="dot ${r.online ? "on" : ""}" title="${r.online ? "Radio Bandwidth is running there now" : "Not answering right now"}"></span>${esc(r.host || r.target)}</b>
-        <small>${esc(r.target)}${r.ip && r.ip !== r.target ? " (" + esc(r.ip) + ")" : ""} &middot; ${esc(r.when)}${r.verdict ? ` &middot; last result: <span class="vd ${esc(r.verdict)}">${vword[r.verdict] || esc(r.verdict)}</span>` : " &middot; tested this computer"}${r.online ? "" : " &middot; offline"}</small></div>
+        <small>${esc(r.target)}${r.ip && r.ip !== r.target ? " (" + esc(r.ip) + ")" : ""} &middot; ${esc(r.when)}${r.verdict ? ` &middot; last result: <span class="vd ${esc(r.verdict)}">${vword[r.verdict] || esc(r.verdict)}</span>` : " &middot; tested this computer"}${r.online ? verText(r) : " &middot; offline"}</small></div>
+      ${r.online ? updCtl(r.target, r) : ""}
       <button data-t="${esc(r.target)}" class="go" ${S.test.running ? "disabled" : ""}>Test</button>
       <button data-t="${esc(r.target)}" class="x" title="Forget this computer">&times;</button>
     </div>`).join("");
   for (const b of $("recent").querySelectorAll("button.go")) b.onclick = () => start(b.dataset.t);
   for (const b of $("recent").querySelectorAll("button.x")) b.onclick = () => api("/api/forget", {target: b.dataset.t}).then(poll);
+  wireUpd($("recent"));
 }
 
 async function start(target){

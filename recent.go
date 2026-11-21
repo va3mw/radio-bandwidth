@@ -21,6 +21,8 @@ type Recent struct {
 	Verdict string `json:"verdict"` // good / fair / poor / "" (tested us)
 	When    string `json:"when"`
 	Online  bool   `json:"online"`
+	Version string `json:"version,omitempty"` // filled in for the page only
+	Update  string `json:"update,omitempty"`  // filled in for the page only
 }
 
 type recentStore struct {
@@ -130,6 +132,9 @@ func (a *App) recentLoop() {
 			}
 			h, err := a.hello(host, port, 1200*time.Millisecond)
 			online := err == nil && h.ID != a.id
+			if online {
+				a.notePeerVersion(a.verKey(r.Target), h)
+			}
 			a.recent.mu.Lock()
 			for i := range a.recent.list {
 				if a.recent.list[i].Target == r.Target {

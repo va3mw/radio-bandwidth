@@ -58,6 +58,9 @@ func (a *App) setPhase(phase, label string) {
 func (a *App) tick(mbps, rtt float64) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	if !a.test.Running {
+		return // e.g. updating another computer from the list
+	}
 	t := time.Since(a.test.started).Seconds()
 	a.test.Progress = math.Min(t/planSeconds, 0.99)
 	if mbps >= 0 {

@@ -64,6 +64,14 @@ func (a *App) startUI(port int) (string, error) {
 	mux.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) {
 		st := uiState{App: appName, Version: appVersion, Host: a.hostName(), OS: runtime.GOOS,
 			Interfaces: a.interfaces(), Peers: a.peerList(), Recent: a.recent.snapshot(), Test: a.snapshotTest()}
+		for i := range st.Peers {
+			st.Peers[i].Version, st.Peers[i].Update = a.peerUpdateInfo(st.Peers[i].Addr)
+		}
+		for i := range st.Recent {
+			if st.Recent[i].Online {
+				st.Recent[i].Version, st.Recent[i].Update = a.peerUpdateInfo(st.Recent[i].Target)
+			}
+		}
 		for _, k := range profileOrder {
 			st.Profiles = append(st.Profiles, profiles[k])
 		}
@@ -150,6 +158,9 @@ func (a *App) startUI(port int) (string, error) {
 	}))
 	mux.HandleFunc("/api/update", a.post(func(map[string]string) error {
 		return a.startUpdate("", "requested on this computer")
+	}))
+	mux.HandleFunc("/api/update-peer", a.post(func(body map[string]string) error {
+		return a.startPeerUpdate(body["target"])
 	}))
 	mux.HandleFunc("/api/forget", a.post(func(body map[string]string) error {
 		a.recent.remove(body["target"])
