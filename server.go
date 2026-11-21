@@ -38,6 +38,7 @@ type HelloReply struct {
 	Proto       int        `json:"proto,omitempty"`       // wire protocol version (0 = before 1.7.0)
 	Features    []string   `json:"features,omitempty"`    // tests and functions it supports
 	UpdateState string     `json:"updateState,omitempty"` // progress of an update it was asked to do
+	Radio       *RadioInfo `json:"radio,omitempty"`       // the far end is a FlexRadio
 	MaxMbps     float64    `json:"maxMbps,omitempty"`     // keep test traffic under this
 	App         string     `json:"app"`
 	Version     string     `json:"version"`
@@ -62,9 +63,10 @@ type Peer struct {
 	IP       string    `json:"ip"`
 	Host     string    `json:"host"`
 	OS       string    `json:"os"`
-	Via      string    `json:"via"`             // "LAN" or "Tailscale"
-	DNS      string    `json:"dns,omitempty"`   // MagicDNS name
-	Version  string    `json:"version,omitempty"` // NetProof version it runs, once known
+	Via      string    `json:"via"`               // "LAN" or "Tailscale"
+	DNS      string    `json:"dns,omitempty"`     // MagicDNS name
+	Radio    string    `json:"radio,omitempty"`   // FlexRadio model, if it is one
+	Version  string    `json:"version,omitempty"` // Radio Bandwidth version it runs, once known
 	Update   string    `json:"update,omitempty"`  // see peerUpdateInfo
 	LastSeen time.Time `json:"-"`
 }
@@ -102,6 +104,7 @@ type App struct {
 	pver map[string]peerVer // other copies' versions, by address:port
 	pupd map[string]string  // updates of other copies started from the page
 
+	radio   *RadioInfo // set when running inside a FlexRadio
 	maxMbps float64    // responder side: speed limit testers must respect (0 = none)
 	capMbps float64    // client side, during a test: the far end's limit
 
@@ -184,11 +187,11 @@ func (a *App) serveUDPEcho(uc *net.UDPConn) {
 		if n < 4 {
 			continue
 		}
-		if bytes.Equal(buf[:4], []byte("NPRF")) {
+		if bytes.Equal(buf[:4], []byte("RBWF")) {
 			_, _ = uc.WriteToUDP(buf[:n], from)
 			continue
 		}
-		if buf[0] == 'N' && buf[1] == 'P' && buf[2] == 'R' {
+		if buf[0] == 'R' && buf[1] == 'B' && buf[2] == 'W' {
 			a.handleStreamPacket(uc, buf[:n], from, time.Now())
 		}
 	}
@@ -225,7 +228,7 @@ func (a *App) helloReply(local net.Addr) HelloReply {
 	r := HelloReply{Magic: magic, ID: a.id, App: appName, Version: appVersion, Host: a.hostName(), OS: runtime.GOOS}
 	a.mu.Lock()
 	r.Busy = a.test.Running
-	r.MaxMbps = a.maxMbps
+	r.Radio, r.MaxMbps = a.radio, a.maxMbps
 	a.mu.Unlock()
 	r.Proto, r.Features, r.UpdateState = protoVersion, myFeatures, a.upd.get()
 	if ta, ok := local.(*net.TCPAddr); ok {
@@ -395,9 +398,11 @@ type announce struct {
 	Host  string `json:"host"`
 	OS    string `json:"os"`
 	Port  int    `json:"port"`
+	Radio string `json:"radio,omitempty"` // model, when this is a FlexRadio
 }
 
-// hostName is the name this copy announces.
+// hostName is the name this copy announces; inside a radio it changes once
+// the radio API answers.
 func (a *App) hostName() string {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -429,12 +434,20 @@ func (a *App) discoveryLoop() {
 			if an.Port != 0 && an.Port != defDataPort {
 				addr = net.JoinHostPort(ip, fmt.Sprint(an.Port))
 			}
-			a.addPeer(&Peer{ID: an.ID, Addr: addr, IP: ip, Host: an.Host, OS: an.OS, Via: "LAN"})
+			a.addPeer(&Peer{ID: an.ID, Addr: addr, IP: ip, Host: an.Host, OS: an.OS, Via: "LAN", Radio: an.Radio})
 			a.refreshPeerVersion(addr)
 		}
 	}()
 	for {
 		an := announce{Magic: magic, ID: a.id, Host: a.hostName(), OS: runtime.GOOS, Port: a.port}
+		a.mu.Lock()
+		if a.radio != nil {
+			an.Radio = a.radio.Model
+			if an.Radio == "" {
+				an.Radio = "FlexRadio"
+			}
+		}
+		a.mu.Unlock()
 		msg, _ := json.Marshal(an)
 		targets := map[string]bool{"255.255.255.255": true}
 		for _, b := range broadcastAddrs() {
@@ -485,7 +498,7 @@ func (a *App) peerList() []Peer {
 // ---------------------------------------------------------------- tailscale
 
 // tailscaleLoop finds Tailscale peers (broadcast does not cross VPNs) and
-// checks which of them are running NetProof.
+// checks which of them are running Radio Bandwidth.
 func (a *App) tailscaleLoop() {
 	if !tailscaleInstalled() {
 		return
@@ -546,8 +559,8 @@ func copyName(port int) string {
 	return "first copy"
 }
 
-// isNetProofUI checks whether another copy already serves the UI there.
-func isNetProofUI(url string) bool {
+// isOurUI checks whether another copy already serves the UI there.
+func isOurUI(url string) bool {
 	c := &httpClient
 	resp, err := c.Get(url + "api/ping")
 	if err != nil {

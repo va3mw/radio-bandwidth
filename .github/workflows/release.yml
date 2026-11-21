@@ -1,10 +1,10 @@
 name: Release
 
 # Push a tag like v1.7.0 (matching appVersion in main.go) to publish a
-# release. Copies of NetProof update themselves from the newest release,
+# release. Copies of Radio Bandwidth update themselves from the newest release,
 # so the signed manifest must be part of every release.
 #
-# Needs the repository secret NETPROOF_SIGNING_KEY (from
+# Needs the repository secret RBW_SIGNING_KEY (from
 # "go run ./tools/release keygen"). Regenerate rsrc_windows_*.syso for the
 # new version before tagging (see README, Building).
 
@@ -42,10 +42,11 @@ jobs:
       - name: Build
         run: |
           ./build.sh
+          ./build-waveform.sh
 
       - name: Sign the update manifest
         env:
-          NETPROOF_SIGNING_KEY: ${{ secrets.NETPROOF_SIGNING_KEY }}
+          RBW_SIGNING_KEY: ${{ secrets.RBW_SIGNING_KEY }}
         run: go run ./tools/release manifest -version "${GITHUB_REF_NAME#v}" -dir dist
 
       - name: Publish
@@ -53,10 +54,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            --title "NetProof ${GITHUB_REF_NAME#v}" --generate-notes \
-            dist/netproof.exe dist/netproof-windows-arm64.exe \
-            dist/netproof-linux-amd64 dist/netproof-linux-arm64 \
-            dist/netproof-mac-arm64 dist/netproof-mac-intel \
-            dist/NetProof-mac.zip dist/netproof-mac-universal \
-            "dist/NetProof second copy.bat" \
-            dist/netproof-update.json dist/netproof-update.json.sig
+            --title "Radio Bandwidth ${GITHUB_REF_NAME#v}" --generate-notes \
+            dist/radio-bandwidth.exe dist/radio-bandwidth-windows-arm64.exe \
+            dist/radio-bandwidth-linux-amd64 dist/radio-bandwidth-linux-arm64 \
+            dist/radio-bandwidth-mac-arm64 dist/radio-bandwidth-mac-intel \
+            dist/RadioBandwidth-mac.zip dist/radio-bandwidth-mac-universal \
+            "dist/Radio Bandwidth second copy.bat" \
+            dist/radio-bandwidth-waveform-*.tar.gz \
+            dist/radio-bandwidth-update.json dist/radio-bandwidth-update.json.sig

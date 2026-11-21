@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NetProof</title>
+<title>Radio Bandwidth</title>
 <style>
 :root{
   --bg:#f4f5f7; --card:#fff; --ink:#1b1f24; --mute:#626b76; --line:#dde1e6;
@@ -95,8 +95,8 @@ details summary{cursor:pointer;font-weight:600}
 <body>
 <main>
   <header>
-    <h1>Net<span>Proof</span></h1>
-    <div class="row" style="width:auto;gap:12px"><div class="me" id="me"></div><button class="ghost" id="quit" style="padding:6px 12px;font-size:13px">Quit NetProof</button></div>
+    <h1>Radio <span>Bandwidth</span></h1>
+    <div class="row" style="width:auto;gap:12px"><div class="me" id="me"></div><button class="ghost" id="quit" style="padding:6px 12px;font-size:13px">Quit Radio Bandwidth</button></div>
   </header>
 
   <div id="updBanner" class="banner hide"></div>
@@ -110,7 +110,7 @@ details summary{cursor:pointer;font-weight:600}
 
   <section class="card" id="pick">
     <h2><span class="step">2</span>Pick the other computer</h2>
-    <p class="hint" style="margin:-4px 0 10px">NetProof must be running on the other computer too. Nothing to set up there: it answers automatically.</p>
+    <p class="hint" style="margin:-4px 0 10px">Radio Bandwidth must be running on the other computer too. Nothing to set up there: it answers automatically.</p>
     <div id="peers"></div>
     <div id="recentBox" class="hide">
       <h2 style="margin:16px 0 4px">Tested before</h2>
@@ -127,7 +127,7 @@ details summary{cursor:pointer;font-weight:600}
     </div>
     <p class="hint">The test takes about 45 seconds: delay &amp; jitter, packet size, TCP speed both ways, then a steady UDP stream both ways (like radio audio and SDR data).</p>
     <div class="practiceBox">
-      <div><b>New to NetProof?</b><br><span class="hint" style="margin:0">Try a practice run on just this computer. No second computer needed; the numbers are not graded.</span></div>
+      <div><b>New to Radio Bandwidth?</b><br><span class="hint" style="margin:0">Try a practice run on just this computer. No second computer needed; the numbers are not graded.</span></div>
       <button class="ghost" id="practice">Practice run</button>
     </div>
   </section>
@@ -168,7 +168,7 @@ details summary{cursor:pointer;font-weight:600}
   <section class="card">
     <details id="refBox">
       <summary>What does a healthy network look like, and when would I notice?</summary>
-      <p class="hint">NetProof only calls something out when you would actually hear or feel it. The first columns are what a healthy network measures; the last ones are where people start to notice. A wired link never shows its full label speed: about 6% goes to Ethernet, IP and TCP headers.</p>
+      <p class="hint">Radio Bandwidth only calls something out when you would actually hear or feel it. The first columns are what a healthy network measures; the last ones are where people start to notice. A wired link never shows its full label speed: about 6% goes to Ethernet, IP and TCP headers.</p>
       <table>
         <thead><tr><th></th><th>Healthy 100 Mb/s LAN</th><th>Healthy 1 Gb/s LAN</th><th>Healthy VPN / Tailscale</th><th>You may notice</th><th>You will notice</th></tr></thead>
         <tbody>
@@ -230,9 +230,9 @@ function renderIfaces(){
 // The other computer's version, for the line under its name.
 function verText(p){
   if (!p.version) return "";
-  if (p.update === "manual") return ` &middot; NetProof ${esc(p.version)}: install ${esc(S.version)} there once, then it updates itself`;
-  if ((p.update || "").startsWith("failed: ")) return ` &middot; NetProof ${esc(p.version)}: the update did not work (${esc(p.update.slice(8))})`;
-  return ` &middot; NetProof ${esc(p.version)}`;
+  if (p.update === "manual") return ` &middot; Radio Bandwidth ${esc(p.version)}: install ${esc(S.version)} there once, then it updates itself`;
+  if ((p.update || "").startsWith("failed: ")) return ` &middot; Radio Bandwidth ${esc(p.version)}: the update did not work (${esc(p.update.slice(8))})`;
+  return ` &middot; Radio Bandwidth ${esc(p.version)}`;
 }
 
 // The Update button, or how updating the other computer is going.
@@ -240,7 +240,7 @@ function updCtl(target, p){
   const dis = S.test.running ? "disabled" : "";
   switch (true){
     case p.update === "available":
-      return `<button class="ghost upd-go" data-t="${esc(target)}" ${dis} title="Update NetProof on ${esc(p.host || target)} from ${esc(p.version)} to ${esc(S.version)}">Update to ${esc(S.version)}</button>`;
+      return `<button class="ghost upd-go" data-t="${esc(target)}" ${dis} title="Update Radio Bandwidth on ${esc(p.host || target)} from ${esc(p.version)} to ${esc(S.version)}">Update to ${esc(S.version)}</button>`;
     case p.update === "updating":
       return `<span class="upd">Updating&hellip;</span>`;
     case p.update === "updated":
@@ -260,16 +260,16 @@ function wireUpd(box){
 
 function renderPeers(){
   const ps = S.peers || [];
-  const fp = JSON.stringify(ps.map(p=>[p.addr,p.host,p.via,p.version,p.update])) + S.test.running + S.version;
+  const fp = JSON.stringify(ps.map(p=>[p.addr,p.host,p.via,p.radio,p.version,p.update])) + S.test.running + S.version;
   if (fp === lastFp) return;
   lastFp = fp;
   if (!ps.length){
-    $("peers").innerHTML = `<div class="empty">Looking for other computers running NetProof on your network&hellip; If the other one is on a VPN or a different network, type its address below.</div>`;
+    $("peers").innerHTML = `<div class="empty">Looking for other computers running Radio Bandwidth on your network&hellip; If the other one is on a VPN or a different network, type its address below.</div>`;
     return;
   }
   $("peers").innerHTML = ps.map(p => `
     <div class="peer">
-      <div class="n"><b>${esc(p.host)}<span class="tag">${esc(p.via)}</span></b><small>${p.dns ? esc(p.dns) + " &middot; " : ""}${esc(p.addr)} &middot; ${esc(p.os)}${verText(p)}</small></div>
+      <div class="n"><b>${esc(p.host)}<span class="tag">${esc(p.via)}</span>${p.radio ? `<span class="tag">Radio</span>` : ""}</b><small>${p.dns ? esc(p.dns) + " &middot; " : ""}${esc(p.addr)} &middot; ${esc(p.os)}${verText(p)}</small></div>
       ${updCtl(p.addr, p)}
       <button class="test" data-addr="${esc(p.addr)}" ${S.test.running ? "disabled" : ""}>Test</button>
     </div>`).join("");
@@ -287,7 +287,7 @@ function renderRecent(){
   const vword = {good:"healthy", fair:"so-so", poor:"problems"};
   $("recent").innerHTML = rs.map(r => `
     <div class="peer">
-      <div class="n"><b><span class="dot ${r.online ? "on" : ""}" title="${r.online ? "NetProof is running there now" : "Not answering right now"}"></span>${esc(r.host || r.target)}</b>
+      <div class="n"><b><span class="dot ${r.online ? "on" : ""}" title="${r.online ? "Radio Bandwidth is running there now" : "Not answering right now"}"></span>${esc(r.host || r.target)}</b>
         <small>${esc(r.target)}${r.ip && r.ip !== r.target ? " (" + esc(r.ip) + ")" : ""} &middot; ${esc(r.when)}${r.verdict ? ` &middot; last result: <span class="vd ${esc(r.verdict)}">${vword[r.verdict] || esc(r.verdict)}</span>` : " &middot; tested this computer"}${r.online ? verText(r) : " &middot; offline"}</small></div>
       ${r.online ? updCtl(r.target, r) : ""}
       <button data-t="${esc(r.target)}" class="go" ${S.test.running ? "disabled" : ""}>Test</button>
@@ -402,11 +402,11 @@ function renderUpdate(){
   const b = $("updBanner"), st = S.updateState || "";
   let html = "";
   if (st.startsWith("updating") || st.startsWith("restarting")){
-    html = `<div>Updating NetProof&hellip; the page reconnects by itself in a few seconds.</div>`;
+    html = `<div>Updating Radio Bandwidth&hellip; the page reconnects by itself in a few seconds.</div>`;
   } else if (st.startsWith("failed")){
     html = `<div>The update did not work: ${esc(st.slice(8))}</div><button class="ghost" id="updGo">Try again</button>`;
   } else if (S.latest){
-    html = `<div><b>NetProof ${esc(S.latest)} is available.</b> This computer runs ${esc(S.version)}.</div><button id="updGo">Update now</button>`;
+    html = `<div><b>Radio Bandwidth ${esc(S.latest)} is available.</b> This computer runs ${esc(S.version)}.</div><button id="updGo">Update now</button>`;
   }
   b.classList.toggle("hide", !html);
   if (b.dataset.fp === html) return; // keep the button stable between polls
@@ -429,7 +429,7 @@ async function poll(){
   try {
     const r = await fetch("/api/state", {cache:"no-store"});
     S = await r.json();
-  } catch(e){ $("me").textContent = "NetProof has stopped. Start it again to continue."; return; }
+  } catch(e){ $("me").textContent = "Radio Bandwidth has stopped. Start it again to continue."; return; }
   $("me").textContent = `This computer: ${S.host} · v${S.version}`;
   renderIfaces(); renderPtype(); renderPeers(); renderRecent(); renderUpdate(); renderRun(); renderIncoming();
   // Show whichever result is newest: ours, or one the other side ran against us.
@@ -440,7 +440,7 @@ async function poll(){
 }
 
 $("go").onclick = () => start($("target").value);
-$("quit").onclick = () => { if (confirm("Stop NetProof on this computer? Other computers will not be able to test with it until you start it again.")) api("/api/quit").catch(() => {}); };
+$("quit").onclick = () => { if (confirm("Stop Radio Bandwidth on this computer? Other computers will not be able to test with it until you start it again.")) api("/api/quit").catch(() => {}); };
 $("practice").onclick = () => start("127.0.0.1");
 $("target").addEventListener("keydown", e => { userTyped = true; if (e.key === "Enter") start($("target").value); });
 $("cancel").onclick = () => api("/api/cancel");

@@ -153,8 +153,8 @@ func buildFixes(r *Result, p Profile) []Fix {
 	if r.LatencyMethod != "UDP" || r.UDPNote != "" {
 		add(Fix{"Allow UDP between the computers", []string{
 			"Ham radio audio, SDR data and most real-time apps use UDP, so this has to work.",
-			"On Windows: Windows Security > Firewall & network protection > Allow an app through firewall > tick NetProof for Private and Public (and the same for your radio software).",
-			"On Debian with ufw: sudo ufw allow 47800:47801/udp",
+			"On Windows: Windows Security > Firewall & network protection > Allow an app through firewall > tick Radio Bandwidth for Private and Public (and the same for your radio software).",
+			"On Debian with ufw: sudo ufw allow 47830:47831/udp",
 			"Check the router or VPN firewall rules between the two networks allow UDP, not just TCP.",
 		}})
 	}

@@ -110,14 +110,14 @@ func (a *App) startPeerUpdate(target string) error {
 	a.notePeerVersion(key, h)
 	switch {
 	case compareVersions(h.Version, appVersion) >= 0:
-		return fmt.Errorf("%s already runs NetProof %s", h.Host, h.Version)
+		return fmt.Errorf("%s already runs Radio Bandwidth %s", h.Host, h.Version)
 	case !peerFeatures(h)["update"]:
-		return fmt.Errorf("%s runs NetProof %s, which cannot update itself. Install %s there once; after that it keeps itself up to date", h.Host, h.Version, appVersion)
+		return fmt.Errorf("%s runs Radio Bandwidth %s, which cannot update itself. Install %s there once; after that it keeps itself up to date", h.Host, h.Version, appVersion)
 	}
 	a.mu.Lock()
 	a.pupd[key] = "updating"
 	a.mu.Unlock()
-	fmt.Printf("[%s] Updating NetProof on %s from %s to %s\n", time.Now().Format("15:04:05"), h.Host, h.Version, appVersion)
+	fmt.Printf("[%s] Updating Radio Bandwidth on %s from %s to %s\n", time.Now().Format("15:04:05"), h.Host, h.Version, appVersion)
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
@@ -126,9 +126,9 @@ func (a *App) startPeerUpdate(target string) error {
 		st := "updated"
 		if err != nil {
 			st = "failed: " + err.Error()
-			fmt.Printf("[%s] Could not update NetProof on %s: %v\n", time.Now().Format("15:04:05"), h.Host, err)
+			fmt.Printf("[%s] Could not update Radio Bandwidth on %s: %v\n", time.Now().Format("15:04:05"), h.Host, err)
 		} else {
-			fmt.Printf("[%s] Updated NetProof on %s to %s\n", time.Now().Format("15:04:05"), nh.Host, nh.Version)
+			fmt.Printf("[%s] Updated Radio Bandwidth on %s to %s\n", time.Now().Format("15:04:05"), nh.Host, nh.Version)
 		}
 		a.mu.Lock()
 		a.pupd[key] = st

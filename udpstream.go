@@ -5,9 +5,9 @@ package main
 // use. Unlike TCP, nothing is resent, so every lost packet is a dropout.
 //
 // Packets (all on the main test port):
-//   NPRS session(8) seq(4) sendNs(8) pad...   stream data, 1200 bytes
-//   NPRE session(8) sent(4)                   end of stream, sent 5 times
-//   NPRQ session(8) kbps(4) durMs(4)          "send me a stream" (download)
+//   RBWS session(8) seq(4) sendNs(8) pad...   stream data, 1200 bytes
+//   RBWE session(8) sent(4)                   end of stream, sent 5 times
+//   RBWQ session(8) kbps(4) durMs(4)          "send me a stream" (download)
 // Upload results are fetched over TCP with op "udpstats".
 
 import (
@@ -143,7 +143,7 @@ func streamPackets(rateMbps float64) float64 {
 func sendStream(ctx context.Context, write func([]byte) error, session []byte, rateMbps float64, dur time.Duration, onSent func(int)) int {
 	pkt := make([]byte, udpPayload)
 	_, _ = rand.Read(pkt)
-	copy(pkt, "NPRS")
+	copy(pkt, "RBWS")
 	copy(pkt[4:12], session)
 	pps := streamPackets(rateMbps)
 	start := time.Now()
@@ -170,7 +170,7 @@ func sendStream(ctx context.Context, write func([]byte) error, session []byte, r
 		time.Sleep(time.Millisecond)
 	}
 	end := make([]byte, 16)
-	copy(end, "NPRE")
+	copy(end, "RBWE")
 	copy(end[4:12], session)
 	binary.BigEndian.PutUint32(end[12:16], uint32(sent))
 	for i := 0; i < 5; i++ {
@@ -198,7 +198,7 @@ func (u *udpServer) allow(ip string) {
 	u.allowed[ip] = time.Now()
 }
 
-// mayStreamTo stops NetProof being used to flood a third party with spoofed
+// mayStreamTo stops Radio Bandwidth being used to flood a third party with spoofed
 // requests: only addresses that just completed a TCP handshake qualify.
 func (u *udpServer) mayStreamTo(ip net.IP) bool {
 	if ip.IsLoopback() {
@@ -237,27 +237,27 @@ func (u *udpServer) take(session string) *streamRx {
 	return rx
 }
 
-// handleStreamPacket is called from the UDP read loop for NPRS/NPRE/NPRQ.
+// handleStreamPacket is called from the UDP read loop for RBWS/RBWE/RBWQ.
 func (a *App) handleStreamPacket(uc *net.UDPConn, p []byte, from *net.UDPAddr, now time.Time) {
 	if len(p) < 12 {
 		return
 	}
 	session := hex.EncodeToString(p[4:12])
 	switch string(p[:4]) {
-	case "NPRS":
+	case "RBWS":
 		if len(p) < 24 {
 			return
 		}
 		if rx := a.us.rxFor(session, true); rx != nil {
 			rx.add(binary.BigEndian.Uint32(p[12:16]), int64(binary.BigEndian.Uint64(p[16:24])), len(p), now)
 		}
-	case "NPRE":
+	case "RBWE":
 		if len(p) >= 16 {
 			if rx := a.us.rxFor(session, false); rx != nil {
 				rx.end(int(binary.BigEndian.Uint32(p[12:16])))
 			}
 		}
-	case "NPRQ":
+	case "RBWQ":
 		if len(p) < 20 || !a.us.mayStreamTo(from.IP) {
 			return
 		}
@@ -327,7 +327,7 @@ func (a *App) udpStreamDown(ctx context.Context, host string, port int, rateMbps
 	defer uc.Close()
 	sess, _ := newSession()
 	req := make([]byte, 20)
-	copy(req, "NPRQ")
+	copy(req, "RBWQ")
 	copy(req[4:12], sess)
 	binary.BigEndian.PutUint32(req[12:16], uint32(rateMbps*1000))
 	binary.BigEndian.PutUint32(req[16:20], uint32(udpStreamDur/time.Millisecond))
@@ -353,12 +353,12 @@ func (a *App) udpStreamDown(ctx context.Context, host string, port int, rateMbps
 		now := time.Now()
 		if err == nil && n >= 12 && string(buf[4:12]) == string(sess) {
 			switch string(buf[:4]) {
-			case "NPRS":
+			case "RBWS":
 				if n >= 24 {
 					gotAny = true
 					rx.add(binary.BigEndian.Uint32(buf[12:16]), int64(binary.BigEndian.Uint64(buf[16:24])), n, now)
 				}
-			case "NPRE":
+			case "RBWE":
 				if n >= 16 {
 					rx.end(int(binary.BigEndian.Uint32(buf[12:16])))
 				}

@@ -1,6 +1,6 @@
 package main
 
-// Versions and features. Two copies of NetProof do not need to be the same
+// Versions and features. Two copies of Radio Bandwidth do not need to be the same
 // version: each tells the other what it can do, and a test simply skips what
 // the far end does not support. Copies from before this scheme (1.5.x and
 // older) are recognised by their version number.

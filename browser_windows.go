@@ -5,7 +5,7 @@ package main
 import "golang.org/x/sys/windows"
 
 // openBrowser asks Windows to open the default browser, the same way
-// double-clicking a link does. NetProof never starts other programs itself.
+// double-clicking a link does. Radio Bandwidth never starts other programs itself.
 func openBrowser(url string) {
 	verb, _ := windows.UTF16PtrFromString("open")
 	u, _ := windows.UTF16PtrFromString(url)

@@ -8,17 +8,17 @@ set -e
 cd "$(dirname "$0")"
 mkdir -p dist
 export CGO_ENABLED=0
-GOOS=windows GOARCH=amd64 go build -trimpath -o dist/netproof.exe .
-GOOS=windows GOARCH=arm64 go build -trimpath -o dist/netproof-windows-arm64.exe .
+GOOS=windows GOARCH=amd64 go build -trimpath -o dist/radio-bandwidth.exe .
+GOOS=windows GOARCH=arm64 go build -trimpath -o dist/radio-bandwidth-windows-arm64.exe .
 S="-trimpath -ldflags=-s -ldflags=-w"
-GOOS=linux   GOARCH=amd64 go build $S -o dist/netproof-linux-amd64 .
-GOOS=linux   GOARCH=arm64 go build $S -o dist/netproof-linux-arm64 .
-GOOS=darwin  GOARCH=arm64 go build $S -o dist/netproof-mac-arm64 .
-GOOS=darwin  GOARCH=amd64 go build $S -o dist/netproof-mac-intel .
-# macOS: NetProof.app with one universal program, zipped
+GOOS=linux   GOARCH=amd64 go build $S -o dist/radio-bandwidth-linux-amd64 .
+GOOS=linux   GOARCH=arm64 go build $S -o dist/radio-bandwidth-linux-arm64 .
+GOOS=darwin  GOARCH=arm64 go build $S -o dist/radio-bandwidth-mac-arm64 .
+GOOS=darwin  GOARCH=amd64 go build $S -o dist/radio-bandwidth-mac-intel .
+# macOS: Radio Bandwidth.app with one universal program, zipped
 VERSION="$(sed -n 's/^var appVersion = "\(.*\)"$/\1/p' main.go)"
 go run ./tools/mkmacapp -version "$VERSION" -icon winres/icon.png \
-  -arm64 dist/netproof-mac-arm64 -amd64 dist/netproof-mac-intel \
-  -universal dist/netproof-mac-universal -out dist/NetProof-mac.zip
-cp "NetProof second copy.bat" dist/
+  -arm64 dist/radio-bandwidth-mac-arm64 -amd64 dist/radio-bandwidth-mac-intel \
+  -universal dist/radio-bandwidth-mac-universal -out dist/RadioBandwidth-mac.zip
+cp "Radio Bandwidth second copy.bat" dist/
 ls -l dist

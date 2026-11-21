@@ -42,11 +42,11 @@ func TestPeerFeaturesFromOldVersions(t *testing.T) {
 func TestVerifyManifest(t *testing.T) {
 	pub, priv, _ := ed25519.GenerateKey(rand.Reader)
 	pubB64 := base64.StdEncoding.EncodeToString(pub)
-	body := []byte(`{"version":"1.7.1","files":{"linux-amd64":{"name":"netproof-linux-amd64","sha256":"ab","size":1}}}`)
+	body := []byte(`{"version":"1.7.1","files":{"linux-amd64":{"name":"radio-bandwidth-linux-amd64","sha256":"ab","size":1}}}`)
 	sig := []byte(base64.StdEncoding.EncodeToString(ed25519.Sign(priv, body)))
 
 	m, err := verifyManifest(body, sig, pubB64)
-	if err != nil || m.Version != "1.7.1" || m.Files["linux-amd64"].Name != "netproof-linux-amd64" {
+	if err != nil || m.Version != "1.7.1" || m.Files["linux-amd64"].Name != "radio-bandwidth-linux-amd64" {
 		t.Fatalf("good manifest rejected: %v %+v", err, m)
 	}
 	tampered := []byte(strings.Replace(string(body), "1.7.1", "9.9.9", 1))
@@ -72,7 +72,7 @@ func TestVersionNotesInReport(t *testing.T) {
 	r := &Result{LocalKind: "wired", RemoteKind: "wired", RemoteHost: "OldPC", RemoteVersion: "1.1.0",
 		LocalLinkMbps: 1000, RemoteLinkMbps: 1000, Route: "local", DownMbps: 930, UpMbps: 930, IdleRTT: 0.3,
 		LatencyMethod: "UDP", Sent: 300, Skipped: []string{"mtu", "udpstream"},
-		VersionNotes: []string{"OldPC runs NetProof 1.1.0, which cannot update itself."}}
+		VersionNotes: []string{"OldPC runs Radio Bandwidth 1.1.0, which cannot update itself."}}
 	r.Grade("auto")
 	txt := r.Text()
 	for _, want := range []string{"cannot update itself", "Not tested: the packet size (MTU) test and the UDP stream test"} {
