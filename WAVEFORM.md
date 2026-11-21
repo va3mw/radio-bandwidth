@@ -1,14 +1,14 @@
-# NetProof as a FlexRadio waveform
+# Radio Bandwidth as a FlexRadio waveform
 
 FLEX-8000 series and Aurora radios (SmartSDR 4.2.18 and later) can run Docker containers as
-waveforms. Installed this way, NetProof runs inside the radio and answers tests by itself, so
+waveforms. Installed this way, Radio Bandwidth runs inside the radio and answers tests by itself, so
 operators can test the network path between their PC and the radio, which is what SmartSDR
 audio, panadapter and DAX actually use.
 
 It has no screen and no settings. It:
 
-- answers tests from any computer running NetProof (TCP and UDP port 47800);
-- announces itself on the LAN every 2 seconds (UDP 47801), so it appears in every NetProof's
+- answers tests from any computer running Radio Bandwidth (TCP and UDP port 47830);
+- announces itself on the LAN every 2 seconds (UDP 47831), so it appears in every Radio Bandwidth's
   list with a **Radio** tag;
 - reads the radio's model, nickname and callsign from the radio's own API (read only, the
   `info` command on port 4992), and announces itself as, for example,
@@ -20,7 +20,7 @@ against a simulated radio API. The checklist below is the first test on real har
 
 ## Install
 
-1. Get `netproof-waveform-<version>.tar.gz` (built for arm64, the radio's CPU).
+1. Get `radio-bandwidth-waveform-<version>.tar.gz` (built for arm64, the radio's CPU).
 2. In SmartSDR, open the **Waveform Manager**, click **Install** and choose the file.
 3. The radio starts the container. It also starts automatically after every reboot.
 
@@ -28,7 +28,7 @@ To remove it, uninstall it in the Waveform Manager.
 
 ## Test it
 
-On a PC on the same LAN as the radio, run NetProof. Within a few seconds the radio appears in
+On a PC on the same LAN as the radio, run Radio Bandwidth. Within a few seconds the radio appears in
 **Pick the other computer** with a Radio tag. Click **Test**.
 
 If it does not appear, type the radio's IP address (for example `192.168.110.78`) and click
@@ -55,7 +55,7 @@ limit is built into the image instead:
 MAX_MBPS=20 ./build-waveform.sh
 ```
 
-This makes `netproof-waveform-<version>-max20mbps.tar.gz`. Every PC that tests this radio keeps
+This makes `radio-bandwidth-waveform-<version>-max20mbps.tar.gz`. Every PC that tests this radio keeps
 its traffic under 20 Mb/s in both directions, the UDP stream included. The results show the
 speed without grading it and say that the radio limited it. Delay, jitter, loss and MTU are
 measured as normal. Whether a limit is needed, and what value, is one of the things the first
@@ -66,7 +66,7 @@ test on a radio should answer.
 **LAN only for now.** On these radios Tailscale runs inside its own container
 ([flex-tailnet-shim](https://github.com/aethersdr/AetherSDR/tree/main/tools/flex-tailnet-shim)) with
 its own network stack, so the radio's Tailscale address only reaches ports that container
-publishes, and it publishes TCP only. NetProof needs UDP for most of its tests (stream loss,
+publishes, and it publishes TCP only. Radio Bandwidth needs UDP for most of its tests (stream loss,
 jitter, MTU), so testing the radio over Tailscale would give incomplete and misleading results.
 UDP publishing in the shim would make it possible.
 
@@ -79,8 +79,8 @@ UDP publishing in the shim would make it possible.
 1. Builds a static Linux binary for arm64 (no C library, nothing else needed).
 2. Writes `NOTICES` with the licences of the third-party code linked in.
 3. Packs both into an OCI container image with `tools/mkwaveform`: `FROM scratch` (no operating
-   system inside), entry point `/netproof --responder`, and the two labels the radio reads:
-   `com.flexradio.waveform.name=netproof` and `com.flexradio.waveform.version=<version>`.
+   system inside), entry point `/radio-bandwidth --responder`, and the two labels the radio reads:
+   `com.flexradio.waveform.name=radio-bandwidth` and `com.flexradio.waveform.version=<version>`.
 
 The result is about 2.7 MB. No Docker daemon is needed to build it, and the same source always
 gives a byte-for-byte identical file.
@@ -92,7 +92,7 @@ ARCH=amd64 ./build-waveform.sh
 ```
 
 ```bash
-docker load -i dist/netproof-waveform-<version>-amd64.tar.gz
+docker load -i dist/radio-bandwidth-waveform-<version>-amd64.tar.gz
 ```
 
 ```bash
@@ -108,10 +108,10 @@ share the radio's own network; LAN discovery depends on it.
 |---|---|
 | CPU | arm64 (Cortex-A72) |
 | Network | the container shares the radio's own network |
-| `SSDR_RADIO_ADDRESS` | the radio API's address, normally 172.30.1.1. NetProof switches to responder mode when it is set |
+| `SSDR_RADIO_ADDRESS` | the radio API's address, normally 172.30.1.1. Radio Bandwidth switches to responder mode when it is set |
 | Start | automatically, about 20 seconds after the radio boots, before the radio API is up |
 | Logs | none; the container's output is not visible |
-| Ports in use by the radio | 4991 to 4995, 42607, 48992, 48993. NetProof uses 47800 and 47801 |
+| Ports in use by the radio | 4991 to 4995, 42607, 48992, 48993. Radio Bandwidth uses 47830 and 47831 |
 
 Most of this was learned from the AetherSDR project's
 [flex-tailnet-shim](https://github.com/aethersdr/AetherSDR/tree/main/tools/flex-tailnet-shim)

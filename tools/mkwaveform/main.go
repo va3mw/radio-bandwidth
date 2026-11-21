@@ -6,9 +6,9 @@
 // .version). Everything is fixed (timestamps, owners, order), so the same
 // inputs always give the same bytes. No Docker daemon is needed.
 //
-//	go run ./tools/mkwaveform -name netproof -version 1.6.0 -arch arm64 \
-//	    -out netproof-waveform-1.6.0.tar.gz -args=--responder \
-//	    dist/waveform/netproof NOTICES
+//	go run ./tools/mkwaveform -name radio-bandwidth -version 1.6.0 -arch arm64 \
+//	    -out radio-bandwidth-waveform-1.6.0.tar.gz -args=--responder \
+//	    dist/waveform/radio-bandwidth NOTICES
 package main
 
 import (
@@ -133,7 +133,7 @@ func main() {
 		"os":           "linux",
 		"config":       cfg,
 		"rootfs":       map[string]any{"type": "layers", "diff_ids": []string{digest(layerTar)}},
-		"history":      []map[string]string{{"created_by": "netproof tools/mkwaveform"}},
+		"history":      []map[string]string{{"created_by": "radio-bandwidth tools/mkwaveform"}},
 	})
 	manifest := mustJSON(map[string]any{
 		"schemaVersion": 2,

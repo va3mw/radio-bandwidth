@@ -73,11 +73,11 @@ func (a *App) mtuTest(ctx context.Context, host string, port int) *MTUResult {
 	return res
 }
 
-// echoProbe sends one NPRF packet of the given payload size and waits for the
+// echoProbe sends one RBWF packet of the given payload size and waits for the
 // same packet to come back.
 func echoProbe(uc *net.UDPConn, size int, seq uint32) bool {
 	pkt := make([]byte, size)
-	copy(pkt, "NPRF")
+	copy(pkt, "RBWF")
 	binary.BigEndian.PutUint32(pkt[4:8], 0xFFFF0000|seq) // never matches latency probes
 	if _, err := uc.Write(pkt); err != nil {
 		return false // EMSGSIZE: bigger than this computer's own MTU

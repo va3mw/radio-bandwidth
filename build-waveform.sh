@@ -1,6 +1,6 @@
 #!/bin/sh
-# Builds the NetProof FlexRadio waveform (FLEX-8000 series and Aurora):
-#   dist/netproof-waveform-<version>.tar.gz
+# Builds the Radio Bandwidth FlexRadio waveform (FLEX-8000 series and Aurora):
+#   dist/radio-bandwidth-waveform-<version>.tar.gz
 # Install it with SmartSDR's Waveform Manager. See WAVEFORM.md.
 #
 #   ./build-waveform.sh                # arm64, for the radio, no speed limit
@@ -17,11 +17,11 @@ VERSION="$(sed -n 's/^var appVersion = "\(.*\)"$/\1/p' main.go)"
 mkdir -p dist/waveform
 
 CGO_ENABLED=0 GOOS=linux GOARCH="$ARCH" GOFLAGS=-buildvcs=false \
-  go build -trimpath -ldflags='-s -w' -o dist/waveform/netproof .
+  go build -trimpath -ldflags='-s -w' -o dist/waveform/radio-bandwidth .
 
 # Third-party licences that must travel with the binary.
 {
-  echo "NetProof includes the following third-party software, under their own licences."
+  echo "Radio Bandwidth includes the following third-party software, under their own licences."
   # Only modules actually linked into this binary.
   for mod in $(GOOS=linux GOARCH="$ARCH" go list -deps -f '{{if .Module}}{{if not .Module.Main}}{{.Module.Path}}{{end}}{{end}}' . | sort -u); do
     dir="$(go list -m -f '{{.Dir}}' "$mod")"
@@ -38,12 +38,12 @@ CGO_ENABLED=0 GOOS=linux GOARCH="$ARCH" GOFLAGS=-buildvcs=false \
   cat "$(go env GOROOT)/LICENSE"
 } > dist/waveform/NOTICES
 
-OUT="dist/netproof-waveform-$VERSION"
+OUT="dist/radio-bandwidth-waveform-$VERSION"
 [ "$ARCH" = arm64 ] || OUT="$OUT-$ARCH"
 ENV=""
 if [ "$MAX_MBPS" != 0 ]; then
   OUT="$OUT-max${MAX_MBPS}mbps"
-  ENV="NETPROOF_MAX_MBPS=$MAX_MBPS"
+  ENV="RBW_MAX_MBPS=$MAX_MBPS"
 fi
-go run ./tools/mkwaveform -name netproof -version "$VERSION" -arch "$ARCH" \
-  -args=--responder -env="$ENV" -out "$OUT.tar.gz" dist/waveform/netproof dist/waveform/NOTICES
+go run ./tools/mkwaveform -name radio-bandwidth -version "$VERSION" -arch "$ARCH" \
+  -args=--responder -env="$ENV" -out "$OUT.tar.gz" dist/waveform/radio-bandwidth dist/waveform/NOTICES

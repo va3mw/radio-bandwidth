@@ -422,7 +422,7 @@ func (r *Result) Grade(profile string) {
 		for _, k := range r.Skipped {
 			names = append(names, featureNames[k])
 		}
-		add("info", fmt.Sprintf("Not tested: %s, because %s runs NetProof %s, which does not have it. Update it to get the full test.", strings.Join(names, " and "), r.RemoteHost, r.RemoteVersion))
+		add("info", fmt.Sprintf("Not tested: %s, because %s runs Radio Bandwidth %s, which does not have it. Update it to get the full test.", strings.Join(names, " and "), r.RemoteHost, r.RemoteVersion))
 	}
 	if r.RateCapMbps > 0 {
 		add("info", fmt.Sprintf("%s limits test traffic to %s so a test cannot disturb live operation. Speed here shows only whether the link can carry that much.", r.RemoteHost, mbps(r.RateCapMbps)))
@@ -465,7 +465,7 @@ func (r *Result) Grade(profile string) {
 }
 
 // gradePractice: a loopback test never touches the network, so the numbers
-// only show how NetProof works. Nothing is graded.
+// only show how Radio Bandwidth works. Nothing is graded.
 func (r *Result) gradePractice() {
 	r.ProfileKey, r.ProfileName, r.ProfileAuto, r.AutoReason = "practice", "Practice run (no network)", true, ""
 	exp := "practice run: not graded"
@@ -487,7 +487,7 @@ func (r *Result) gradePractice() {
 	r.Headline = "Practice run finished"
 	r.Notes = []Finding{
 		{"info", "This test never left this computer, so the speeds are far higher than any real network and nothing is graded. It only shows you what a test looks like."},
-		{"info", "For a real test, start NetProof on a second computer and pick it from the list (or type its address)."},
+		{"info", "For a real test, start Radio Bandwidth on a second computer and pick it from the list (or type its address)."},
 	}
 	r.Findings = nil
 	for _, f := range r.Notes {
@@ -532,7 +532,7 @@ func maxf(a, b float64) float64 {
 func (r *Result) Text() string {
 	var b strings.Builder
 	mark := map[string]string{"good": "OK  ", "fair": "MAY ", "poor": "BAD ", "info": "    "}
-	fmt.Fprintf(&b, "NetProof %s report  %s\n", r.Version, r.Time)
+	fmt.Fprintf(&b, "Radio Bandwidth %s report  %s\n", r.Version, r.Time)
 	remote := r.RemoteIP
 	if r.RemoteName != "" {
 		remote = r.RemoteName + " = " + r.RemoteIP

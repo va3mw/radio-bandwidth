@@ -1,15 +1,15 @@
-// release: signing for NetProof's automatic updates.
+// release: signing for Radio Bandwidth's automatic updates.
 //
 //	go run ./tools/release keygen
 //	    Makes a new Ed25519 key pair. Prints the public key (goes into
 //	    update.go as releasePublicKey) and the private key (store it as the
-//	    GitHub Actions secret NETPROOF_SIGNING_KEY, and keep a backup).
+//	    GitHub Actions secret RBW_SIGNING_KEY, and keep a backup).
 //
-//	NETPROOF_SIGNING_KEY=... go run ./tools/release manifest -version 1.7.0 -dir dist
-//	    Writes dist/netproof-update.json (version, file names, SHA-256) and
-//	    dist/netproof-update.json.sig (Ed25519 signature of that file).
+//	RBW_SIGNING_KEY=... go run ./tools/release manifest -version 1.7.0 -dir dist
+//	    Writes dist/radio-bandwidth-update.json (version, file names, SHA-256) and
+//	    dist/radio-bandwidth-update.json.sig (Ed25519 signature of that file).
 //
-// NetProof only installs an update whose manifest is signed by this key and
+// Radio Bandwidth only installs an update whose manifest is signed by this key and
 // whose file matches the SHA-256 in the manifest.
 package main
 
@@ -29,12 +29,12 @@ import (
 
 // Release files per platform, as build.sh names them.
 var assets = map[string]string{
-	"windows-amd64": "netproof.exe",
-	"windows-arm64": "netproof-windows-arm64.exe",
-	"linux-amd64":   "netproof-linux-amd64",
-	"linux-arm64":   "netproof-linux-arm64",
-	"darwin-arm64":  "netproof-mac-arm64",
-	"darwin-amd64":  "netproof-mac-intel",
+	"windows-amd64": "radio-bandwidth.exe",
+	"windows-arm64": "radio-bandwidth-windows-arm64.exe",
+	"linux-amd64":   "radio-bandwidth-linux-amd64",
+	"linux-arm64":   "radio-bandwidth-linux-arm64",
+	"darwin-arm64":  "radio-bandwidth-mac-arm64",
+	"darwin-amd64":  "radio-bandwidth-mac-intel",
 }
 
 type assetInfo struct {
@@ -66,7 +66,7 @@ func main() {
 		fmt.Println("public key (put in update.go, releasePublicKey):")
 		fmt.Println(base64.StdEncoding.EncodeToString(pub))
 		fmt.Println()
-		fmt.Println("private key (GitHub secret NETPROOF_SIGNING_KEY; keep a backup; never commit):")
+		fmt.Println("private key (GitHub secret RBW_SIGNING_KEY; keep a backup; never commit):")
 		fmt.Println(base64.StdEncoding.EncodeToString(priv.Seed()))
 
 	case "manifest":
@@ -77,9 +77,9 @@ func main() {
 		if *version == "" {
 			die("-version is required")
 		}
-		seed, err := base64.StdEncoding.DecodeString(strings.TrimSpace(os.Getenv("NETPROOF_SIGNING_KEY")))
+		seed, err := base64.StdEncoding.DecodeString(strings.TrimSpace(os.Getenv("RBW_SIGNING_KEY")))
 		if err != nil || len(seed) != ed25519.SeedSize {
-			die("NETPROOF_SIGNING_KEY must hold the base64 private key from keygen")
+			die("RBW_SIGNING_KEY must hold the base64 private key from keygen")
 		}
 		priv := ed25519.NewKeyFromSeed(seed)
 
@@ -94,10 +94,10 @@ func main() {
 		}
 		body, _ := json.MarshalIndent(m, "", "  ")
 		sig := ed25519.Sign(priv, body)
-		if err := os.WriteFile(filepath.Join(*dir, "netproof-update.json"), body, 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(*dir, "radio-bandwidth-update.json"), body, 0o644); err != nil {
 			die("%v", err)
 		}
-		if err := os.WriteFile(filepath.Join(*dir, "netproof-update.json.sig"), []byte(base64.StdEncoding.EncodeToString(sig)), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(*dir, "radio-bandwidth-update.json.sig"), []byte(base64.StdEncoding.EncodeToString(sig)), 0o644); err != nil {
 			die("%v", err)
 		}
 		fmt.Printf("signed manifest for %s with %d files\n", m.Version, len(m.Files))

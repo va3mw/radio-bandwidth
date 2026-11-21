@@ -173,7 +173,7 @@ func (a *App) startUI(port int) (string, error) {
 			return
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		w.Header().Set("Content-Disposition", "attachment; filename=\"netproof-"+strings.NewReplacer(" ", "_", ":", "").Replace(res.Time)+".txt\"")
+		w.Header().Set("Content-Disposition", "attachment; filename=\"radio-bandwidth-"+strings.NewReplacer(" ", "_", ":", "").Replace(res.Time)+".txt\"")
 		fmt.Fprint(w, res.Text())
 	})
 

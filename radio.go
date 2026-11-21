@@ -1,7 +1,7 @@
 package main
 
 // Running inside a FlexRadio as a Docker waveform: learn the radio's model,
-// nickname and callsign from its own API (read only), so NetProof announces
+// nickname and callsign from its own API (read only), so Radio Bandwidth announces
 // itself as "FLEX-8600 Shack (VA3MW)" instead of a container ID.
 //
 // SmartSDR API: TCP 4992, line based. The radio greets with V<version> and

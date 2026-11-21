@@ -1,11 +1,11 @@
 package main
 
 // Automatic updates. When a tester finds the far end running an older
-// NetProof, it tells it to update. The far end fetches the newest release
+// Radio Bandwidth, it tells it to update. The far end fetches the newest release
 // from GitHub, checks it, swaps its own program file and restarts on the
 // same ports. Nothing is installed unless:
 //
-//   - the release manifest is signed with the NetProof release key
+//   - the release manifest is signed with the Radio Bandwidth release key
 //     (releasePublicKey; the private half is a GitHub Actions secret), and
 //   - the downloaded file matches the SHA-256 the manifest lists, and
 //   - the release is newer than what is running (no downgrades).
@@ -35,16 +35,16 @@ import (
 
 // releasePublicKey verifies release manifests. Made with
 // "go run ./tools/release keygen".
-const releasePublicKey = "ZCnRkBrLPlIdWx9jfuB5ZX11BsHEXRnp3GvbaSkNZ0M="
+const releasePublicKey = "9Xgx0D1TQziKyxOsohUkCf9PQTomAiV4ecIbkQvQGaM="
 
 // Where releases are published. The repository must be public for copies of
-// NetProof to reach these without a login.
-var releaseBaseURL = "https://github.com/va3mw/netproof/releases/latest/download/"
+// Radio Bandwidth to reach these without a login.
+var releaseBaseURL = "https://github.com/va3mw/radio-bandwidth/releases/latest/download/"
 
 func init() {
 	// For testing a release before publishing it. Safe: whatever is served
 	// must still be signed with the release key.
-	if u := os.Getenv("NETPROOF_RELEASE_URL"); u != "" {
+	if u := os.Getenv("RBW_RELEASE_URL"); u != "" {
 		releaseBaseURL = strings.TrimSuffix(u, "/") + "/"
 	}
 }
@@ -65,7 +65,7 @@ func fetch(ctx context.Context, url string, max int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", appName+"/"+appVersion)
+	req.Header.Set("User-Agent", "radio-bandwidth/"+appVersion)
 	resp, err := updateHTTP.Do(req)
 	if err != nil {
 		return nil, err
@@ -103,13 +103,13 @@ func verifyManifest(body, sigB64 []byte, pubB64 string) (*releaseManifest, error
 
 // latestRelease fetches and verifies the newest published manifest.
 func latestRelease(ctx context.Context) (*releaseManifest, error) {
-	body, err := fetch(ctx, releaseBaseURL+"netproof-update.json", 1<<20)
+	body, err := fetch(ctx, releaseBaseURL+"radio-bandwidth-update.json", 1<<20)
 	if err != nil {
-		return nil, fmt.Errorf("could not reach the NetProof releases on GitHub (%v)", err)
+		return nil, fmt.Errorf("could not reach the Radio Bandwidth releases on GitHub (%v)", err)
 	}
-	sig, err := fetch(ctx, releaseBaseURL+"netproof-update.json.sig", 4096)
+	sig, err := fetch(ctx, releaseBaseURL+"radio-bandwidth-update.json.sig", 4096)
 	if err != nil {
-		return nil, fmt.Errorf("could not reach the NetProof releases on GitHub (%v)", err)
+		return nil, fmt.Errorf("could not reach the Radio Bandwidth releases on GitHub (%v)", err)
 	}
 	return verifyManifest(body, sig, releasePublicKey)
 }
@@ -184,7 +184,7 @@ func (a *App) doUpdate(minVersion, reason string) error {
 	if !ok {
 		return fmt.Errorf("release %s has no file for %s/%s", m.Version, runtime.GOOS, runtime.GOARCH)
 	}
-	fmt.Printf("[%s] Updating NetProof %s to %s (%s)\n", time.Now().Format("15:04:05"), appVersion, m.Version, reason)
+	fmt.Printf("[%s] Updating Radio Bandwidth %s to %s (%s)\n", time.Now().Format("15:04:05"), appVersion, m.Version, reason)
 	bin, err := fetch(ctx, releaseBaseURL+f.Name, 64<<20)
 	if err != nil {
 		return err
@@ -238,20 +238,20 @@ func (a *App) reconcileVersions(ctx context.Context, host string, port int, h *H
 	case 0:
 		return h, nil
 	case 1:
-		return h, []string{fmt.Sprintf("%s runs a newer NetProof (%s) than this computer (%s). Update this computer to get the newest tests.", h.Host, h.Version, appVersion)}
+		return h, []string{fmt.Sprintf("%s runs a newer Radio Bandwidth (%s) than this computer (%s). Update this computer to get the newest tests.", h.Host, h.Version, appVersion)}
 	}
 	if h.Radio != nil {
-		return h, []string{fmt.Sprintf("%s runs NetProof waveform %s; %s is available. Reinstall it with SmartSDR's Waveform Manager to get the newest tests.", h.Host, h.Version, appVersion)}
+		return h, []string{fmt.Sprintf("%s runs Radio Bandwidth waveform %s; %s is available. Reinstall it with SmartSDR's Waveform Manager to get the newest tests.", h.Host, h.Version, appVersion)}
 	}
 	if !peerFeatures(h)["update"] {
-		return h, []string{fmt.Sprintf("%s runs NetProof %s, which cannot update itself. Install %s there once; after that it keeps itself up to date.", h.Host, h.Version, appVersion)}
+		return h, []string{fmt.Sprintf("%s runs Radio Bandwidth %s, which cannot update itself. Install %s there once; after that it keeps itself up to date.", h.Host, h.Version, appVersion)}
 	}
-	a.setPhase("update", fmt.Sprintf("Updating NetProof on %s from %s to %s", h.Host, h.Version, appVersion))
+	a.setPhase("update", fmt.Sprintf("Updating Radio Bandwidth on %s from %s to %s", h.Host, h.Version, appVersion))
 	nh, err := a.updatePeer(ctx, host, port, h)
 	if err != nil {
-		return nh, []string{fmt.Sprintf("Could not update NetProof on %s (%v), so it was tested with the version it runs (%s).", nh.Host, err, nh.Version)}
+		return nh, []string{fmt.Sprintf("Could not update Radio Bandwidth on %s (%v), so it was tested with the version it runs (%s).", nh.Host, err, nh.Version)}
 	}
-	return nh, []string{fmt.Sprintf("Updated NetProof on %s from %s to %s before testing.", nh.Host, h.Version, nh.Version)}
+	return nh, []string{fmt.Sprintf("Updated Radio Bandwidth on %s from %s to %s before testing.", nh.Host, h.Version, nh.Version)}
 }
 
 // updatePeer asks the far end to update and waits up to 90 seconds for it

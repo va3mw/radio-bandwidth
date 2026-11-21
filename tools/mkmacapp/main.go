@@ -1,11 +1,11 @@
-// mkmacapp builds the macOS download: NetProof.app with one universal
+// mkmacapp builds the macOS download: Radio Bandwidth.app with one universal
 // program (Apple Silicon + Intel), zipped. Runs on any OS; no Apple tools.
 //
 //	go run ./tools/mkmacapp -version 1.7.0 -icon winres/icon.png \
-//	    -arm64 dist/netproof-mac-arm64 -amd64 dist/netproof-mac-intel \
-//	    -universal dist/netproof-mac-universal -out dist/NetProof-mac.zip
+//	    -arm64 dist/radio-bandwidth-mac-arm64 -amd64 dist/radio-bandwidth-mac-intel \
+//	    -universal dist/radio-bandwidth-mac-universal -out dist/RadioBandwidth-mac.zip
 //
-// The app has no Dock icon (LSUIElement): NetProof's window is the browser
+// The app has no Dock icon (LSUIElement): Radio Bandwidth's window is the browser
 // page, which has a Quit button. Opening the app again just reopens the page.
 package main
 
@@ -76,40 +76,40 @@ func infoPlist(version string) []byte {
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key><string>NetProof</string>
-	<key>CFBundleDisplayName</key><string>NetProof</string>
-	<key>CFBundleIdentifier</key><string>io.github.va3mw.netproof</string>
-	<key>CFBundleExecutable</key><string>netproof</string>
-	<key>CFBundleIconFile</key><string>NetProof</string>
+	<key>CFBundleName</key><string>Radio Bandwidth</string>
+	<key>CFBundleDisplayName</key><string>Radio Bandwidth</string>
+	<key>CFBundleIdentifier</key><string>io.github.va3mw.radio-bandwidth</string>
+	<key>CFBundleExecutable</key><string>radio-bandwidth</string>
+	<key>CFBundleIconFile</key><string>RadioBandwidth</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
 	<key>CFBundleShortVersionString</key><string>` + version + `</string>
 	<key>CFBundleVersion</key><string>` + version + `</string>
 	<key>LSMinimumSystemVersion</key><string>11.0</string>
 	<key>LSUIElement</key><true/>
 	<key>NSHighResolutionCapable</key><true/>
-	<key>NSLocalNetworkUsageDescription</key><string>NetProof tests the network between this Mac and other computers and radios on your local network.</string>
+	<key>NSLocalNetworkUsageDescription</key><string>Radio Bandwidth tests the network between this Mac and other computers and radios on your local network.</string>
 </dict>
 </plist>
 `)
 }
 
-const firstOpen = `Opening NetProof on a Mac for the first time
+const firstOpen = `Opening Radio Bandwidth on a Mac for the first time
 =============================================
 
-1. Drag NetProof.app to your Applications folder (or anywhere you like).
-2. Double-click it. NetProof opens in your web browser. There is no Dock
-   icon: the browser page is NetProof's window, and its Quit button stops it.
+1. Drag Radio Bandwidth.app to your Applications folder (or anywhere you like).
+2. Double-click it. Radio Bandwidth opens in your web browser. There is no Dock
+   icon: the browser page is Radio Bandwidth's window, and its Quit button stops it.
 
-"NetProof cannot be opened because Apple cannot check it for malicious
+"Radio Bandwidth cannot be opened because Apple cannot check it for malicious
 software" (or "not opened"):
-   NetProof is not yet signed by Apple. Open System Settings > Privacy &
-   Security, scroll down, and click "Open Anyway" next to the NetProof
+   Radio Bandwidth is not yet signed by Apple. Open System Settings > Privacy &
+   Security, scroll down, and click "Open Anyway" next to the Radio Bandwidth
    message, then confirm. This is needed only once.
 
-"Allow NetProof to find devices on local networks?"
-   Click Allow. NetProof needs this to test with other computers and radios.
+"Allow Radio Bandwidth to find devices on local networks?"
+   Click Allow. Radio Bandwidth needs this to test with other computers and radios.
 
-"Do you want NetProof to accept incoming network connections?"
+"Do you want Radio Bandwidth to accept incoming network connections?"
    Click Allow, so other computers can test with this Mac.
 `
 
@@ -181,14 +181,14 @@ func main() {
 	}
 	dir := fs.ModeDir | 0o755
 	z, err := zipOf([]entry{
-		{"NetProof.app", nil, dir},
-		{"NetProof.app/Contents", nil, dir},
-		{"NetProof.app/Contents/Info.plist", infoPlist(*version), 0o644},
-		{"NetProof.app/Contents/MacOS", nil, dir},
-		{"NetProof.app/Contents/MacOS/netproof", prog, 0o755},
-		{"NetProof.app/Contents/Resources", nil, dir},
-		{"NetProof.app/Contents/Resources/NetProof.icns", icns(read(*icon)), 0o644},
-		{"Opening NetProof the first time.txt", []byte(firstOpen), 0o644},
+		{"Radio Bandwidth.app", nil, dir},
+		{"Radio Bandwidth.app/Contents", nil, dir},
+		{"Radio Bandwidth.app/Contents/Info.plist", infoPlist(*version), 0o644},
+		{"Radio Bandwidth.app/Contents/MacOS", nil, dir},
+		{"Radio Bandwidth.app/Contents/MacOS/radio-bandwidth", prog, 0o755},
+		{"Radio Bandwidth.app/Contents/Resources", nil, dir},
+		{"Radio Bandwidth.app/Contents/Resources/RadioBandwidth.icns", icns(read(*icon)), 0o644},
+		{"Opening Radio Bandwidth the first time.txt", []byte(firstOpen), 0o644},
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -198,5 +198,5 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	fmt.Printf("%s: NetProof.app %s, universal program %d bytes\n", *out, *version, len(prog))
+	fmt.Printf("%s: Radio Bandwidth.app %s, universal program %d bytes\n", *out, *version, len(prog))
 }

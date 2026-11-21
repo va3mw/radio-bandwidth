@@ -34,7 +34,7 @@ func recentPath() string {
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(dir, "NetProof", "recent.json")
+	return filepath.Join(dir, "Radio Bandwidth", "recent.json")
 }
 
 func (s *recentStore) load() {
@@ -120,7 +120,7 @@ func (s *recentStore) snapshot() []Recent {
 }
 
 // recentLoop checks every few seconds which remembered computers are
-// running NetProof right now.
+// running Radio Bandwidth right now.
 func (a *App) recentLoop() {
 	for {
 		for _, r := range a.recent.snapshot() {

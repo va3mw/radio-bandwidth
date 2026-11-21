@@ -141,7 +141,7 @@ func (a *App) helloOp(ctx context.Context, host string, port int, op string) (*H
 		return nil, err
 	}
 	if h.Magic != magic {
-		return nil, errors.New("not a NetProof program")
+		return nil, errors.New("not a Radio Bandwidth program")
 	}
 	return &h, nil
 }
@@ -204,7 +204,7 @@ func (a *App) doTest(ctx context.Context, target string) (*Result, error) {
 		if typedName != "" {
 			where = typedName + " (" + host + ")"
 		}
-		return nil, fmt.Errorf("could not reach NetProof on %s. Make sure NetProof is running on that computer, the address is right, and the firewall allows it (%v)", where, err)
+		return nil, fmt.Errorf("could not reach Radio Bandwidth on %s. Make sure Radio Bandwidth is running on that computer, the address is right, and the firewall allows it (%v)", where, err)
 	}
 	self := h.ID == a.id
 	// Versions: update an older far end if we can, else test what it supports.
@@ -653,7 +653,7 @@ func (a *App) udpPing(ctx context.Context, host string, port int, dur, ivl time.
 				}
 				return
 			}
-			if n < 16 || string(buf[:4]) != "NPRF" {
+			if n < 16 || string(buf[:4]) != "RBWF" {
 				continue
 			}
 			seq := binary.BigEndian.Uint32(buf[4:8])
@@ -672,7 +672,7 @@ func (a *App) udpPing(ctx context.Context, host string, port int, dur, ivl time.
 	}()
 
 	pkt := make([]byte, 64)
-	copy(pkt, "NPRF")
+	copy(pkt, "RBWF")
 	t := time.NewTicker(ivl)
 	defer t.Stop()
 	var seq uint32

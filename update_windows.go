@@ -12,7 +12,7 @@ import (
 
 // swapAndRestart: a running .exe cannot be overwritten on Windows, but it can
 // be renamed. Move it aside, put the new one in its place, start it the way
-// Explorer would (ShellExecute, so NetProof itself never spawns processes),
+// Explorer would (ShellExecute, so Radio Bandwidth itself never spawns processes),
 // then exit so it can take over the ports.
 func (a *App) swapAndRestart(exe, newPath string) error {
 	old := exe + ".old"

@@ -180,11 +180,11 @@ func (a *App) serveUDPEcho(uc *net.UDPConn) {
 		if n < 4 {
 			continue
 		}
-		if bytes.Equal(buf[:4], []byte("NPRF")) {
+		if bytes.Equal(buf[:4], []byte("RBWF")) {
 			_, _ = uc.WriteToUDP(buf[:n], from)
 			continue
 		}
-		if buf[0] == 'N' && buf[1] == 'P' && buf[2] == 'R' {
+		if buf[0] == 'R' && buf[1] == 'B' && buf[2] == 'W' {
 			a.handleStreamPacket(uc, buf[:n], from, time.Now())
 		}
 	}
@@ -490,7 +490,7 @@ func (a *App) peerList() []Peer {
 // ---------------------------------------------------------------- tailscale
 
 // tailscaleLoop finds Tailscale peers (broadcast does not cross VPNs) and
-// checks which of them are running NetProof.
+// checks which of them are running Radio Bandwidth.
 func (a *App) tailscaleLoop() {
 	if !tailscaleInstalled() {
 		return
@@ -549,8 +549,8 @@ func copyName(port int) string {
 	return "first copy"
 }
 
-// isNetProofUI checks whether another copy already serves the UI there.
-func isNetProofUI(url string) bool {
+// isOurUI checks whether another copy already serves the UI there.
+func isOurUI(url string) bool {
 	c := &httpClient
 	resp, err := c.Get(url + "api/ping")
 	if err != nil {
